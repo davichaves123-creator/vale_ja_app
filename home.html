@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header">
+  <div class="logo">Casa do Aço - Vale Já</div>
+  <div class="user-info">Olá, Sócio</div>
+</div>
+<div class="main-content">
+  <div class="balance-card">
+    <h2>Saldo Atual</h2>
+    <p class="balance-value">R$ {{ '%.2f' | format(current_balance) | replace('.', ',') }}</p>
+    <div class="balance-actions">
+      <button onclick="document.getElementById('vale-form').style.display='block'">Novo Vale</button>
+      <button onclick="document.getElementById('salario-form').style.display='block'">Adicionar Salário</button>
+    </div>
+  </div>
+  <div id="vale-form" style="display:none;">
+    <form action="/new_vale" method="get">
+      <input type="number" step="0.01" name="value" required placeholder="Valor do vale">
+      <input type="text" name="description" placeholder="Descrição">
+      <button type="submit">Lançar Vale</button>
+    </form>
+  </div>
+  <div id="salario-form" style="display:none;">
+    <form action="/add_salary" method="get">
+      <input type="number" step="0.01" name="value" required placeholder="Valor do salário">
+      <input type="text" name="description" placeholder="Descrição">
+      <button type="submit">Adicionar Salário</button>
+    </form>
+  </div>
+  <div class="history-card">
+    <h2>Histórico</h2>
+    <ul>
+      {% for t in transactions[::-1] %}
+      <li>{{ t['datetime_str'] }} - R$ {{ '%.2f' | format(t['value']) | replace('.', ',') }} - {{ t['description'] }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

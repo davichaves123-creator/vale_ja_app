@@ -1,0 +1,6 @@
+
+body { font-family: Arial; background: #f4f4f4; margin: 0; padding: 0; }
+.header { background: #1a1a1a; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; }
+.main-content { padding: 20px; }
+.balance-card, .history-card { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+button { padding: 10px 15px; margin: 5px 0; }
