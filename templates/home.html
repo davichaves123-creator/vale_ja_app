@@ -1,39 +1,110 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="header">
-  <div class="logo">Casa do Aço - Vale Já</div>
-  <div class="user-info">Olá, Sócio</div>
+  <div class="logo">Casa do Aço - <span class="highlight">Vale Já</span></div>
+  <div class="user-info">Bem-vindo, <strong>{{ user_name }}</strong> | <a href="/logout">Sair</a></div>
 </div>
+
 <div class="main-content">
+  {% if request.query_params.get('receipt') %}
+  <div class="alert-success">
+    Comprovante gerado com sucesso! <a href="/download_receipt/{{ request.query_params.get('receipt') }}" target="_blank">Clique aqui para baixar</a>.
+  </div>
+  {% endif %}
+
   <div class="balance-card">
     <h2>Saldo Atual</h2>
     <p class="balance-value">R$ {{ '%.2f' | format(current_balance) | replace('.', ',') }}</p>
     <div class="balance-actions">
-      <button onclick="document.getElementById('vale-form').style.display='block'">Novo Vale</button>
-      <button onclick="document.getElementById('salario-form').style.display='block'">Adicionar Salário</button>
+      <button id="open-form-btn" class="primary-btn">Novo Vale</button>
+      <button id="open-salary-form-btn" class="primary-btn outline">Adicionar Salário</button>
+      <form action="/close_week" method="get" style="display:inline;">
+        <button type="submit" class="secondary-btn">Fechar Semana</button>
+      </form>
     </div>
   </div>
-  <div id="vale-form" style="display:none;">
-    <form action="/new_vale" method="get">
-      <input type="number" step="0.01" name="value" required placeholder="Valor do vale">
-      <input type="text" name="description" placeholder="Descrição">
-      <button type="submit">Lançar Vale</button>
-    </form>
+
+  <!-- Modal: Novo Vale -->
+  <div id="new-vale-form" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-form-btn">&times;</span>
+      <h3>Lançar Novo Vale</h3>
+      <form action="/new_vale" method="get" class="vale-form">
+        <label for="value">Valor (R$)</label>
+        <input type="number" id="value" name="value" step="0.01" min="0.01" required>
+
+        <label for="description">Descrição</label>
+        <input type="text" id="description" name="description" placeholder="Opcional">
+
+        <button type="submit" class="primary-btn">Confirmar</button>
+      </form>
+    </div>
   </div>
-  <div id="salario-form" style="display:none;">
-    <form action="/add_salary" method="get">
-      <input type="number" step="0.01" name="value" required placeholder="Valor do salário">
-      <input type="text" name="description" placeholder="Descrição">
-      <button type="submit">Adicionar Salário</button>
-    </form>
+
+  <!-- Modal: Adicionar Salário -->
+  <div id="new-salary-form" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-salary-form-btn">&times;</span>
+      <h3>Adicionar Salário</h3>
+      <form action="/add_salary" method="get" class="vale-form">
+        <label for="salary_value">Valor (R$)</label>
+        <input type="number" id="salary_value" name="value" step="0.01" min="0.01" required>
+
+        <label for="salary_description">Descrição</label>
+        <input type="text" id="salary_description" name="description" placeholder="Opcional">
+
+        <button type="submit" class="primary-btn">Confirmar</button>
+      </form>
+    </div>
   </div>
+
   <div class="history-card">
     <h2>Histórico</h2>
-    <ul>
-      {% for t in transactions[::-1] %}
-      <li>{{ t['datetime_str'] }} - R$ {{ '%.2f' | format(t['value']) | replace('.', ',') }} - {{ t['description'] }}</li>
-      {% endfor %}
-    </ul>
+    {% if transactions %}
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Valor</th>
+          <th>Descrição</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transactions[::-1] %}
+        <tr class="{% if t['value'] < 0 %}negative{% else %}positive{% endif %}">
+          <td>{{ t['datetime_str'] }}</td>
+          <td>{{ '%.2f' | format(t['value']) | replace('.', ',') }}</td>
+          <td>{{ t['description'] if t['description'] else '-' }}</td>
+          <td>{{ '%.2f' | format(t['balance']) | replace('.', ',') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty-msg">Nenhum lançamento registrado.</p>
+    {% endif %}
   </div>
 </div>
+
+<script>
+const modalVale = document.getElementById('new-vale-form');
+const openVale = document.getElementById('open-form-btn');
+const closeVale = document.getElementById('close-form-btn');
+
+const modalSalary = document.getElementById('new-salary-form');
+const openSalary = document.getElementById('open-salary-form-btn');
+const closeSalary = document.getElementById('close-salary-form-btn');
+
+openVale.addEventListener('click', () => modalVale.style.display = 'block');
+closeVale.addEventListener('click', () => modalVale.style.display = 'none');
+openSalary.addEventListener('click', () => modalSalary.style.display = 'block');
+closeSalary.addEventListener('click', () => modalSalary.style.display = 'none');
+
+window.addEventListener('click', e => {
+  if (e.target === modalVale) modalVale.style.display = 'none';
+  if (e.target === modalSalary) modalSalary.style.display = 'none';
+});
+</script>
 {% endblock %}
